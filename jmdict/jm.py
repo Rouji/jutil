@@ -13,7 +13,7 @@ def main(regex,
          db_path=None,
          format=None,
          limit=None):
-    """Searches JMDict.
+    """Searches (English) JMDict.
 
     regex: Python regex to use for searching. Matches substrings, use ^ and $ if you need whole matches.
     fields: Comma-separated list of fields to search. Valid fields are: kanji, reading, meaning, pos, misc
@@ -29,8 +29,12 @@ def main(regex,
             db.prepare(jmdict_url)
         fields = set(fields.split(',')) if fields else set()
         format = format or '{kanji} [{reading}] ({pos},{misc}): {meaning}'
+        limit = int(limit) if type(limit) is str else -1
         for res in db.search(regex, fields=fields):
             print(format.format(**{k: ','.join(v) for k, v in res.items()}))
+            limit -= 1
+            if limit == 0:
+                break
     except JmDBError as ex:
         print('Error: ' + str(ex), file=sys.stderr)
         return 1
