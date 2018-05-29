@@ -22,10 +22,10 @@ class JmDB(object):
     DEFAULT_DB = _DEFAULT_DB
 
     def __init__(self, db_path: str = _DEFAULT_DB):
-        self.db_path = db_path or JmDB.DEFAULT_DB
+        self.db_path = db_path or self.DEFAULT_DB
 
     def prepare(self, jmdict_src=_DEFAULT_URL) -> None:
-        jmdict_src = jmdict_src or JmDB.DEFAULT_URL
+        jmdict_src = jmdict_src or self.DEFAULT_URL
         with open(self.db_path, 'w') as db, \
                 closing(urlopen(jmdict_src)) as gz, \
                 gzip.GzipFile(fileobj=gz, mode='r') as unzip:
@@ -36,12 +36,12 @@ class JmDB(object):
                 return s.strip('&;')
 
             for entry in tree.iter('entry'):
-                line = JmDB.FS.join([
-                    JmDB.IS.join([e.text for e in entry.iterfind('.//keb')]),
-                    JmDB.IS.join([e.text for e in entry.iterfind('.//reb')]),
-                    JmDB.IS.join([e.text for e in entry.iterfind('.//gloss')]),
-                    JmDB.IS.join({strip(e[0].text) for e in entry.iterfind('.//pos')}),
-                    JmDB.IS.join({strip(e[0].text) for e in entry.iterfind('.//misc')}),
+                line = self.FS.join([
+                    self.IS.join([e.text for e in entry.iterfind('.//keb')]),
+                    self.IS.join([e.text for e in entry.iterfind('.//reb')]),
+                    self.IS.join([e.text for e in entry.iterfind('.//gloss')]),
+                    self.IS.join({strip(e[0].text) for e in entry.iterfind('.//pos')}),
+                    self.IS.join({strip(e[0].text) for e in entry.iterfind('.//misc')}),
                 ])
                 db.write(line+'\n')
 
@@ -49,12 +49,12 @@ class JmDB(object):
     def parse_entry(cls, entry_line: str) -> Dict[str, List[str]]:
         return dict(zip(
             cls.FIELDS,
-            [l.split(JmDB.IS) for l in entry_line.rstrip('\n').split(cls.FS)]
+            [l.split(cls.IS) for l in entry_line.rstrip('\n').split(cls.FS)]
         ))
 
     def search(self, regex: str, fields: set = set()) -> Generator[Dict[str, List[str]], None, None]:
         r = re.compile(regex)
-        fields_set = set(JmDB.FIELDS)
+        fields_set = set(self.FIELDS)
         if not fields <= fields_set:
             raise JmDBError('Unknown search field(s) {}. Valid fields are {}.'.format(fields - fields_set, fields_set))
         fields = fields or fields_set
