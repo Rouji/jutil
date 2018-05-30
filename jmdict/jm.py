@@ -12,26 +12,28 @@ def main(regex,
          jmdict_url=None,
          db_path=None,
          format=None,
-         limit=None):
+         limit=None,
+         separator=', '):
     """Searches (English) JMDict.
 
     regex: Python regex to use for searching. Matches substrings, use ^ and $ if you need whole matches.
     fields: Comma-separated list of fields to search. Valid fields are: kanji, reading, meaning, pos, misc
     prepare: Download JMDict and prepare it for searching before doing anything else. Must be done once before searches are possible.
-    jmdict_url: Specify alternate URL to download JMDict from.
-    db_path: Specify alternate path for the prepared JMDict DB.
-    format: Format string to use for search results. Uses Python's str.format(), passes all search_fields. Ex.: '{kanji} [{reading}] ({pos},{misc}): {meaning}'
-    limit: Limit number of results shown."""
+    jmdict_url: Alternate URL to download JMDict from.
+    db_path: Alternate path for the prepared JMDict DB.
+    format: Format string to use for search results. Uses Python's str.format(), passes all search_fields. Ex.: '{kanji} [{reading}] ({pos}) {{{misc}}}: {meaning}'
+    limit: Limit number of results shown.
+    separator: Separator to use for fields with multiple values."""
 
     try:
         db = JmDB(db_path)
         if prepare:
             db.prepare(jmdict_url)
         fields = set(fields.split(',')) if fields else set()
-        format = format or '{kanji} [{reading}] ({pos},{misc}): {meaning}'
+        format = format or '{kanji} [{reading}] ({pos}) {{{misc}}}: {meaning}'
         limit = int(limit) if type(limit) is str else -1
         for res in db.search(regex, fields=fields):
-            print(format.format(**{k: ','.join(v) for k, v in res.items()}))
+            print(format.format(**{k: separator.join(v) for k, v in res.items()}))
             limit -= 1
             if limit == 0:
                 break
