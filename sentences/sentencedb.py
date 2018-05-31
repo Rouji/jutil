@@ -1,50 +1,54 @@
+import re
+import gzip
 import os
-import sqlite3
-from typing import Tuple, List, Dict, Union
+from typing import List, Dict, Union
+from concurrent import futures
 
-_DEFAULT_DB = os.path.join(os.path.dirname(__file__), 'sentences.sqlite3')
+_DEFAULT_DB = os.path.join(os.path.dirname(__file__), 'tags')
 
 
 class SentenceDB(object):
     DEFAULT_DB = _DEFAULT_DB
+    BAD_CHARS = '\\/:?%*|'
 
     def __init__(self, db_path: str = _DEFAULT_DB):
-        self.db = sqlite3.connect(db_path or self.DEFAULT_DB)
-        self.db.row_factory = self.dict_factory
-        self.db.execute("""
-            CREATE TABLE IF NOT EXISTS sentences(
-                category TEXT,
-                sentence TEXT,
-                CONSTRAINT unique_sent UNIQUE(category, sentence)
-            );""")
-        self.db.commit()
+        self.db_path = db_path or self.DEFAULT_DB
+        if not os.path.exists(self.db_path):
+            os.makedirs(self.db_path)
 
-    @staticmethod
-    def dict_factory(cursor, row):
-        return dict(zip([col[0] for col in cursor.description], row))
+    @classmethod
+    def escape_filename(cls, name: str) -> str:
+        return ''.join(c if c not in cls.BAD_CHARS else '_' for c in name)
 
-    def __enter__(self):
-        return self
+    def search(self, tag_re: Union[str, None], sentence_re: Union[str, None]) -> List[Dict[str, str]]:
+        tr = re.compile(tag_re) if tag_re else None
+        sr = re.compile(sentence_re) if sentence_re else None
 
-    def __exit__(self, *args):
-        self.db.close()
+        futs = []
+        for tag in os.listdir(self.db_path):
+            path = os.path.join(self.db_path, tag)
+            if os.path.isdir(path) or (tr and not tr.search(tag)):
+                continue
+            with gzip.open(path, 'rt') as gz:
+                for line in gz:
+                    line = line.rstrip()
+                    if not sr or sr.search(line):
+                        yield {'tag': tag, 'sentence': line}
 
-    def search(self, category_glob: str, sentence_glob: str, limit: Union[int, None] = None) -> List[Dict[str, str]]:
-        return self.db.execute("""
-            SELECT *
-            FROM sentences
-            WHERE category GLOB ?
-            AND sentence GLOB ?{};""".format(' LIMIT ' + str(limit) if limit else ''),
-            (category_glob, sentence_glob))
+    def add(self, tag: str, sentences: List[str], replace: bool = False) -> None:
+        tag = self.escape_filename(tag)
+        with gzip.open(os.path.join(self.db_path, tag), 'wt' if replace else 'at', compresslevel=4) as gz:
+            for sentence in sentences:
+                sentence = sentence.strip()
+                if sentence:
+                    gz.write(sentence)
 
-    def add(self, sentences: List[Tuple]) -> None:
-        self.db.executemany("INSERT OR IGNORE INTO sentences(category, sentence) VALUES(?,?);", sentences)
-        self.db.commit()
+    def delete(self, tag: str) -> bool:
+        path = os.path.join(self.db_path, tag)
+        if not os.path.isfile(path):
+            return False
+        os.unlink(path)
+        return True
 
-    def delete(self, category_glob: str, sentence_glob: str) -> int:
-        res = self.db.execute("DELETE FROM sentences WHERE category GLOB ? AND sentence GLOB ?;", (category_glob, sentence_glob))
-        self.db.commit()
-        return res.rowcount
-
-    def categories(self) -> List[str]:
-        return self.db.execute("SELECT category, count(*) as count FROM sentences GROUP BY category;")
+    def tags(self) -> set:
+        return {tag for tag in os.listdir(self.db_path) if os.path.isfile(os.path.join(self.db_path,tag))}
