@@ -29,19 +29,28 @@ class SentenceDB(object):
             path = os.path.join(self.db_path, tag)
             if os.path.isdir(path) or (tr and not tr.search(tag)):
                 continue
-            with gzip.open(path, 'rt') as gz:
-                for line in gz:
-                    line = line.rstrip()
-                    if not sr or sr.search(line):
-                        yield {'tag': tag, 'sentence': line}
+            try:
+                with gzip.open(path, 'rt') as gz:
+                    for line in gz:
+                        line = line.rstrip()
+                        if not sr or sr.search(line):
+                            yield {'tag': tag, 'sentence': line}
+            except OSError:
+                pass
 
-    def add(self, tag: str, sentences: List[str], replace: bool = False) -> None:
+    def add(self, tag: str, sentences: List[str], replace: bool = False, unique: bool = False) -> None:
         tag = self.escape_filename(tag)
+        seen = set()
         with gzip.open(os.path.join(self.db_path, tag), 'wt' if replace else 'at', compresslevel=4) as gz:
             for sentence in sentences:
                 sentence = sentence.strip()
+                if unique:
+                    h = hash(sentence)
+                    if h in seen:
+                        continue
+                    seen.add(h)
                 if sentence:
-                    gz.write(sentence)
+                    gz.write(sentence + '\n')
 
     def delete(self, tag: str) -> bool:
         path = os.path.join(self.db_path, tag)

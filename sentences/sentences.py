@@ -13,6 +13,7 @@ def main(sentence=None,
          list_tags=False,
          limit=None,
          db_path=None,
+         unique=False,
          print_tag=False):
     """Manage/search a DB of example sentences.
 
@@ -24,6 +25,7 @@ def main(sentence=None,
     list_tags: List all tags.
     limit: Limit number of search results shown.
     db_path: Alternate path (directory) for tags storage.
+    unique: Ignore duplicate lines in input.
     print_tag: Print the tag name in front of every result.'
     """
 
@@ -38,7 +40,7 @@ def main(sentence=None,
             print('Error: You need to specify a tag.', file=stderr)
             return 1
         sent_in = [sentence] if stdin.isatty() else stdin
-        db.add(tag, sent_in, replace=replace)
+        db.add(tag, sent_in, replace=replace, unique=unique)
         return
 
     if delete:
