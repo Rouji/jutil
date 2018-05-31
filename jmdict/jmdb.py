@@ -15,8 +15,8 @@ class JmDBError(Exception):
 
 
 class JmDB(object):
-    FS = '\uE0000'  # field seperator
-    IS = '\uE0001'  # item seperator
+    FS = '\uE000'  # field seperator
+    IS = '\uE001'  # item seperator
     FIELDS = ['kanji', 'reading', 'meaning', 'pos', 'misc']
     DEFAULT_URL = _DEFAULT_URL
     DEFAULT_DB = _DEFAULT_DB
