@@ -44,3 +44,19 @@ ranobe.狼と香辛料1: 「わっち？」
 ranobe.狼と香辛料1: 「わっちに剣を向けるとは礼儀知らずじゃな」
 ranobe.狼と香辛料1: 「わっちの名前はホロ。しばらくぶりにこの形を取ったがな、うん、なかなか上手くいっとるの」
 ```
+
+```bash
+# mkdir tatoeba; cd tatoeba
+# ../scripts/split_tatoeba.sh
+# l
+eng.txt deu.txt jpn.txt ...
+
+# cd ..
+# for l in eng jpn; do ./sentences.py -a -t "tatoeba.$l" < "tatoeba/$l.txt"
+# ./sentences -s Tom -t tatoeba --limit 5 -p
+tatoeba.deu: "Guten Morgen", sagte Tom mit einem Lächeln.
+tatoeba.deu: Tom und ich haben keine Gemeinsamkeiten.
+tatoeba.eng: You can always count on Tom.
+tatoeba.eng: You're a friend of Tom's, eh?
+tatoeba.eng: Compare your answer with Tom's.
+```
