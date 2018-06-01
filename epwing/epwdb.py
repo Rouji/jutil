@@ -39,7 +39,7 @@ class EpwDB(object):
         for b in json.loads(out)['subbooks']:
             for e in b['entries']:
                 if set(e.keys()) >= required_keys:
-                    yield e
+                    yield {k: v.strip() for k, v in e.items()}
 
     def prepare(self):
         for d in self.dirs.values():
