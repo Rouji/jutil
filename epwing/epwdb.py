@@ -2,11 +2,10 @@ import re
 import gzip
 import json
 from typing import List, Dict, Union
-from os.path import join, exists, dirname
-from os import makedirs, listdir, environ, errno
+from os.path import join, exists, dirname, normpath, split
+from os import makedirs, listdir, environ, errno, sep
 from shutil import which
 from subprocess import Popen, PIPE
-from concurrent.futures import ThreadPoolExecutor, wait
 
 _DEFAULT_BASE = join(dirname(__file__))
 
@@ -18,7 +17,7 @@ class EpwDB(object):
 
     def __init__(self, base_dir: str = _DEFAULT_BASE):
         self.base_dir = base_dir or self.DEFAULT_BASE
-        self.dirs = {d: join(self.base_dir, d) for d in ['epwing_dicts', 'json']}
+        self.json_path = join(self.base_dir, 'json')
 
     def parse_epwing(self, path: str) -> List[Dict]:
         env = environ.copy()
@@ -28,7 +27,7 @@ class EpwDB(object):
             out, err = p.communicate()
             ret = p.returncode
             if ret != 0:
-                raise EpwDBError('zero-epwing exited with non-zero exit code {}. stderr: {}'.format(ret, err))
+                raise EpwDBError('zero-epwing exited with non-zero exit code {}. stderr: {}'.format(ret, err.decode('utf-8')))
         except OSError as ex:
             if ex.errno == errno.ENOENT:
                 raise EpwDBError('Could not run zero-epwing. Make sure it is in your PATH.')
@@ -41,20 +40,15 @@ class EpwDB(object):
                 if set(e.keys()) >= required_keys:
                     yield {k: v.strip() for k, v in e.items()}
 
-    def prepare(self):
-        for d in self.dirs.values():
-            if not exists(d):
-                makedirs(d)
+    def prepare(self, path: str) -> None:
+        if not exists(self.json_path):
+            makedirs(self.json_path)
 
-        def proc(epwdict):
-            json_path = join(self.dirs['json'], epwdict)
-            if not exists(json_path):
-                with gzip.open(json_path, 'wt') as gz:
-                    json.dump(list(self.parse_epwing(join(self.dirs['epwing_dicts'], epwdict))), gz)
-
-        with ThreadPoolExecutor(4) as executor:
-            futs = [executor.submit(proc,d) for d in listdir(self.dirs['epwing_dicts'])]
-            wait(futs)
+        name = normpath(path).split(sep)[-1]
+        json_path = join(self.json_path, name)
+        parsed = list(self.parse_epwing(path))
+        with gzip.open(json_path, 'wt') as gz:
+            json.dump(parsed, gz)
 
     def search(self, dict_re: Union[str, None] = None, heading_re: Union[str, None] = None) -> List[dict]:
         dicts = self.dicts()
@@ -66,7 +60,7 @@ class EpwDB(object):
         if heading_re:
             heading_re = re.compile(heading_re)
         for d in dicts:
-            with gzip.open(join(self.dirs['json'], d)) as gz:
+            with gzip.open(join(self.json_path, d)) as gz:
                 for entry in json.load(gz):
                     if heading_re and not heading_re.search(entry['heading']):
                         continue
@@ -75,4 +69,4 @@ class EpwDB(object):
 
 
     def dicts(self):
-        return listdir(self.dirs['json'])
+        return listdir(self.json_path)

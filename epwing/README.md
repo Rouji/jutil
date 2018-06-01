@@ -1,7 +1,7 @@
 ```bash
 #./epw.py -h
-usage: epw [-h] [-s SEARCH_REGEX] [-d DICT_REGEX] [-b BASE_DIR] [-p] [-l]
-           [--limit LIMIT] [-f FORMAT] [--debug]
+usage: epw [-h] [-s SEARCH_REGEX] [-d DICT_REGEX] [-b BASE_DIR] [-p PREPARE]
+           [-l] [--limit LIMIT] [-f FORMAT] [--debug]
 Search EPWING dictionaries.
 optional arguments:
   -h, --help            show this help message and exit
@@ -12,9 +12,8 @@ optional arguments:
   -b BASE_DIR, --base-dir BASE_DIR
                         Base dir for looking for the epwing_dicts folder and
                         storing prepared dicts in.
-  -p, --prepare         Prepare an EPWING dictionary for use. Put your EPWING
-                        directories in in the epwing_dicts dir before calling
-                        this.
+  -p PREPARE, --prepare PREPARE
+                        Prepare an EPWING dictionary for use.
   -l, --list-dicts      List currently usable dictionaries.
   --limit LIMIT         Limit number of results output.
   -f FORMAT, --format FORMAT
@@ -23,13 +22,12 @@ optional arguments:
                         '[{dict}] {heading}:\n{text}\n'
   --debug               set logging level to DEBUG
 
-#./download_zero-epwing.sh
-#mkdir epwing_dicts
-#cp -r /path/to/大辞泉 epwing_dicts
-#./epw.py --prepare --list-dicts
+# ./download_zero-epwing.sh
+# ./epw.py --prepare /path/to/your/epwings/大辞泉
+# ./epw.py --list-dicts
 大辞泉
 
-#./epw.py --s '行商' --d '泉$'
+# ./epw.py --s '行商' --d '泉$'
 [大辞泉] ぎょう‐しょう【行商】ギヤウシヤウ:
 ぎょう‐しょう【行商】ギヤウシヤウ
 ［名］スル店を構えず、商品を持って売り歩くこと。また、その人。「野菜を―する」{{w_46116}}座商。

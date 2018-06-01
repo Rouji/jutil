@@ -2,13 +2,14 @@
 # coding = utf-8
 
 from entrypoint2 import entrypoint
-from epwdb import EpwDB
+from epwdb import EpwDB, EpwDBError
+from sys import stderr
 
 @entrypoint
 def main(search_regex=None,
          dict_regex=None,
          base_dir=None,
-         prepare=False,
+         prepare=None,
          list_dicts=False,
          limit=None,
          format='[{dict}] {heading}:\n{text}\n'):
@@ -17,13 +18,17 @@ def main(search_regex=None,
     search_regex: Regex to use for searching entry headings.
     dict_regex: Regex to match against dictionary names.
     list_dicts: List currently usable dictionaries.
-    prepare: Prepare an EPWING dictionary for use. Put your EPWING directories in in the epwing_dicts dir before calling this.
+    prepare: Prepare an EPWING dictionary for use.
     base_dir: Base dir for looking for the epwing_dicts folder and storing prepared dicts in.
     format: Output format for search results. Uses Python's str.format(), passes variables dict,heading,text. Ex.: '[{dict}] {heading}:\\n{text}\\n'
     limit: Limit number of results output."""
     db = EpwDB(base_dir)
     if prepare:
-        db.prepare()
+        try:
+            db.prepare(prepare)
+        except EpwDBError as ex:
+            print('Error: ' + str(ex).strip(), file=stderr)
+        return
 
     if list_dicts:
         print('\n'.join(db.dicts()))
