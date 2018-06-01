@@ -52,7 +52,7 @@ ranobe.狼と香辛料1: 「わっちの名前はホロ。しばらくぶりに�
 eng.txt deu.txt jpn.txt ...
 
 # cd ..
-# for l in eng jpn; do ./sentences.py -a -t "tatoeba.$l" < "tatoeba/$l.txt"
+# for l in eng deu jpn; do ./sentences.py -a -t "tatoeba.$l" < "tatoeba/$l.txt"
 # ./sentences -s Tom -t tatoeba --limit 5 -p
 tatoeba.deu: "Guten Morgen", sagte Tom mit einem Lächeln.
 tatoeba.deu: Tom und ich haben keine Gemeinsamkeiten.
