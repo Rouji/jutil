@@ -5,7 +5,7 @@ from entrypoint2 import entrypoint
 from epwdb import EpwDB
 
 @entrypoint
-def main(heading_regex=None,
+def main(search_regex=None,
          dict_regex=None,
          base_dir=None,
          prepare=False,
@@ -14,7 +14,7 @@ def main(heading_regex=None,
          format='[{dict}] {heading}:\n{text}\n'):
     """Search EPWING dictionaries.
 
-    heading_regex: Regex to use for searching entry headings.
+    search_regex: Regex to use for searching entry headings.
     dict_regex: Regex to match against dictionary names.
     list_dicts: List currently usable dictionaries.
     prepare: Prepare an EPWING dictionary for use. Put your EPWING directories in in the epwing_dicts dir before calling this.
@@ -30,7 +30,7 @@ def main(heading_regex=None,
         return
 
     limit = int(limit) if type(limit) is str else -1
-    for res in db.search(dict_regex, heading_regex):
+    for res in db.search(dict_regex, search_regex):
         print(format.format(**res))
         limit -= 1
         if limit == 0:

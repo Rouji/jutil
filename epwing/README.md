@@ -1,11 +1,11 @@
 ```bash
 #./epw.py -h
-usage: epw.py [-h] [--heading-regex HEADING_REGEX] [-d DICT_REGEX]
-              [-b BASE_DIR] [-p] [-l] [--limit LIMIT] [-f FORMAT] [--debug]
+usage: epw [-h] [-s SEARCH_REGEX] [-d DICT_REGEX] [-b BASE_DIR] [-p] [-l]
+           [--limit LIMIT] [-f FORMAT] [--debug]
 Search EPWING dictionaries.
 optional arguments:
   -h, --help            show this help message and exit
-  --heading-regex HEADING_REGEX
+  -s SEARCH_REGEX, --search-regex SEARCH_REGEX
                         Regex to use for searching entry headings.
   -d DICT_REGEX, --dict-regex DICT_REGEX
                         Regex to match against dictionary names.
@@ -29,7 +29,7 @@ optional arguments:
 #./epw.py --prepare --list-dicts
 大辞泉
 
-#./epw.py --heading-regex '行商' --dict-regex '泉$'
+#./epw.py --s '行商' --d '泉$'
 [大辞泉] ぎょう‐しょう【行商】ギヤウシヤウ:
 ぎょう‐しょう【行商】ギヤウシヤウ
 ［名］スル店を構えず、商品を持って売り歩くこと。また、その人。「野菜を―する」{{w_46116}}座商。
